@@ -1,0 +1,9 @@
+{
+    "name": "HUD",
+    "references": [
+        "Unity.TextMeshPro",
+        "UnityEngine.UI",
+        "UpgradeSystem",
+        "WalletSystem"
+    ]
+}
