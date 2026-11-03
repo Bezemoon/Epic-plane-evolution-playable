@@ -1,0 +1,16 @@
+{
+    "name": "PlaneBehaviour",
+    "rootNamespace": "",
+    "references": [
+        "GUID:a51c1024d70011b4bb49062d2359c3a8"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

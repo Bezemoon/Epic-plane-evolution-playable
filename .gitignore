@@ -1,0 +1,50 @@
+# Unity: создаётся движком, в репозиторий не нужно
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+/[Rr]ecordings/
+
+# Unity: автогенерируемые проекты (Unity пересоздаёт их сам)
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# Сторонние ассеты
+/Assets/[Tt]hird[Pp]arty/
+/Assets/[Tt]hird[Pp]arty.meta
+
+# Редакторы и IDE
+/.vs/
+/.idea/
+/.vscode/
+*.DotSettings.user
+
+# Сборки и пакеты
+*.apk
+*.aab
+*.unitypackage
+*.app
+
+# Файлы Unity при крашах и профилировании
+sysinfo.txt
+crashlytics-build.properties
+
+# Системные файлы
+.DS_Store
+Thumbs.db
