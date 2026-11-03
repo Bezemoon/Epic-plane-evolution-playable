@@ -37,7 +37,6 @@ namespace EntryPoints
         private Wallet _wallet;
         private UpgradeService _upgradeService;
         private StartWindowPresenter _startWindowPresenter;
-        private int _completedRuns;
 
         private WaitForSeconds _waitForRestart;
         private Coroutine _restartCoroutine;
@@ -49,15 +48,13 @@ namespace EntryPoints
             InitializeUpgrades();
             InitializePlane();
 
-            _startWindowPresenter = new StartWindowPresenter(_startWindow, _wallet, _upgradeService);
+            _startWindowPresenter = new StartWindowPresenter(_startWindow, _wallet, _upgradeService, _plane);
  
             _distanceCounter = new DistanceCounter(_distanceStartPoint.position);
             _waitForRestart = new WaitForSeconds(_restartDelay);
             
             _resultFlag.Hide();
  
-            _plane.PullStarted += OnPullStarted;
-            _plane.PullCanceled += OnPullCanceled;
             _plane.Stopped += OnPlaneStopped;
 
             ShowStartWindow();
@@ -74,8 +71,6 @@ namespace EntryPoints
             
             _startWindowPresenter.Dispose();
             
-            _plane.PullStarted -= OnPullStarted;
-            _plane.PullCanceled -= OnPullCanceled;
             _plane.Stopped -= OnPlaneStopped;
         }
         
@@ -113,25 +108,13 @@ namespace EntryPoints
                 cameraFollow, planeFuel, _upgradeService.GetUpgrade(UpgradeType.Plane));
         }
 
-        private void OnPullStarted()
-        {
-            _startWindowPresenter.Hide();
-        }
-
-        private void OnPullCanceled()
-        {
-            ShowStartWindow();
-        }
-
         private void ShowStartWindow()
         {
-            _startWindowPresenter.Show(_completedRuns > 0);
+            _startWindowPresenter.Show();
         }
 
         private void OnPlaneStopped()
         {
-            _completedRuns++;
-
             float distance = _distanceCounter.CalculateDistance(_plane.PlaneRoot.position);
 
             Upgrade incomeUpgrade= _upgradeService.GetUpgrade(UpgradeType.Income);

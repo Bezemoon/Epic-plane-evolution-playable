@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace PlaneBehaviour
 {
@@ -47,7 +47,7 @@ namespace PlaneBehaviour
         public void Reset()
         {
             _cameraTransform.position = _target.position + _config.CameraOffset;
-            _cameraTransform.rotation = CalculateLookRotation();
+            _cameraTransform.rotation = CalculateFlightDirection() * Quaternion.Euler(_config.StartCameraPitch, 0f, 0f);
         }
         
         private Vector3 CalculateTargetPosition()

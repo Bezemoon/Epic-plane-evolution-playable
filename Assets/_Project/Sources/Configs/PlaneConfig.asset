@@ -65,11 +65,13 @@ MonoBehaviour:
     _maxWingAngle: 25
     _wingReactionSpeed: 6
     _maxSideDistance: 12
+    _fuelAcceleration: 10
   _planeCameraFollowConfig:
-    _cameraOffset: {x: 0, y: 6, z: -15}
+    _cameraOffset: {x: 0, y: 6, z: -10}
     _cameraLookAheadDistance: 20
     _cameraFollowSharpness: 8
     _cameraLookSharpness: 10
+    _startCameraPitch: 25
   _joystickRadius: 0.15
   _startFuel: 3.5
   _slideDeceleration: 20

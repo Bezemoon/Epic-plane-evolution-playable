@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 using UpgradeSystem;
 
@@ -30,6 +30,7 @@ namespace PlaneBehaviour
 
         public event Action PullStarted;
         public event Action PullCanceled;
+        public event Action Launched;
         public event Action Stopped;
 
         public Transform PlaneRoot => _planeRoot;
@@ -118,14 +119,16 @@ namespace PlaneBehaviour
 
         private void OnShot(float launchSpeed)
         {
+            Launched?.Invoke();
+
             _planeClimb.Start(launchSpeed);
-            _cameraFollow.StartFollowing();
         }
 
         private void OnPlaneClimbFinished(Vector3 velocity)
         {
             _fuel.Fill(_planeUpgrade.Value);
             _planeFlight.Start(velocity);
+            _cameraFollow.StartFollowing();
         }
 
         private void OnPlaneLanded(Vector3 velocity)

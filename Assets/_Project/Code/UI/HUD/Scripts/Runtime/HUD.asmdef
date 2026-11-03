@@ -1,6 +1,7 @@
 {
     "name": "HUD",
     "references": [
+        "PlaneBehaviour",
         "Unity.TextMeshPro",
         "UnityEngine.UI",
         "UpgradeSystem",

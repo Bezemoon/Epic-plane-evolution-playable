@@ -1,10 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using PlaneBehaviour;
 using UnityEngine;
 using UnityEngine.UI;
 using UpgradeSystem;
 using WalletSystem;
+using Plane = PlaneBehaviour.Plane;
 
 namespace HUD
 {
@@ -13,6 +15,7 @@ namespace HUD
         private readonly StartWindow _window;
         private readonly Wallet _wallet;
         private readonly UpgradeService _upgradeService;
+        private readonly Plane _plane;
 
         private readonly Dictionary<RectTransform, float> _startPositionsX = new Dictionary<RectTransform, float>();
         private readonly Dictionary<RectTransform, Coroutine> _shakes = new Dictionary<RectTransform, Coroutine>();
@@ -20,16 +23,29 @@ namespace HUD
         private readonly Dictionary<Image, Coroutine> _flashes = new Dictionary<Image, Coroutine>();
 
         private Coroutine _handRoutine;
-        private bool _hasUpgraded;
+        private readonly Image _pullHandImage;
+        private readonly float _pullHandAlpha;
 
-        public StartWindowPresenter(StartWindow window, Wallet wallet, UpgradeService upgradeService)
+        private Coroutine _pullHandRoutine;
+        private bool _hasUpgraded;
+        private int _completedRuns;
+
+        public StartWindowPresenter(StartWindow window, Wallet wallet, UpgradeService upgradeService, Plane plane)
         {
             _window = window;
             _wallet = wallet;
             _upgradeService = upgradeService;
+            _plane = plane;
+
+            _pullHandImage = _window.PullHand.GetComponent<Image>();
+            _pullHandAlpha = _pullHandImage.color.a;
 
             _wallet.Changed += OnWalletChanged;
             _upgradeService.Bought += OnUpgradeBought;
+            _plane.PullStarted += OnPullStarted;
+            _plane.PullCanceled += OnPullCanceled;
+            _plane.Launched += OnPlaneLaunched;
+            _plane.Stopped += OnPlaneStopped;
 
             for (int index = 0; index < _window.UpgradeViews.Length; index++)
             {
@@ -45,15 +61,20 @@ namespace HUD
 
             _startPositionsX[_window.CoinsPanel] = _window.CoinsPanel.anchoredPosition.x;
 
+            _window.SoundButton.onClick.AddListener(OnSoundClicked);
+            _window.DownloadButton.onClick.AddListener(OnDownloadClicked);
+
             Refresh();
         }
         
-        public void Show(bool showUpgrades)
+        public void Show()
         {
+            bool showUpgrades = _completedRuns > 0;
+
             StopEffects();
 
             _window.gameObject.SetActive(true);
-            _window.HintGroup.SetActive(showUpgrades == false);
+            _window.CoinsPanel.gameObject.SetActive(true);
             _window.UpgradesGroup.SetActive(showUpgrades);
 
             Refresh();
@@ -68,8 +89,16 @@ namespace HUD
             {
                 _handRoutine = _window.StartCoroutine(MoveHand());
             }
-        }
 
+            bool showPullHand = showUpgrades == false;
+            _window.PullHand.gameObject.SetActive(showPullHand);
+
+            if (showPullHand)
+            {
+                _pullHandRoutine = _window.StartCoroutine(MovePullHand());
+            }
+        }
+        
         public void Hide()
         {
             StopEffects();
@@ -77,15 +106,66 @@ namespace HUD
             _window.gameObject.SetActive(false);
         }
 
+        public void HideUpgrades()
+        {
+            if (_handRoutine != null)
+            {
+                _window.StopCoroutine(_handRoutine);
+                _handRoutine = null;
+            }
+
+            if (_pullHandRoutine != null)
+            {
+                _window.StopCoroutine(_pullHandRoutine);
+                _pullHandRoutine = null;
+            }
+
+            if (_window.PullHand.gameObject.activeSelf)
+            {
+                _pullHandRoutine = _window.StartCoroutine(HidePullHand());
+            }
+
+            _window.Hand.gameObject.SetActive(false);
+            _window.UpgradesGroup.SetActive(false);
+            _window.CoinsPanel.gameObject.SetActive(false);
+        }
+
         public void Dispose()
         {
             _wallet.Changed -= OnWalletChanged;
             _upgradeService.Bought -= OnUpgradeBought;
+            _plane.PullStarted -= OnPullStarted;
+            _plane.PullCanceled -= OnPullCanceled;
+            _plane.Launched -= OnPlaneLaunched;
+            _plane.Stopped -= OnPlaneStopped;
+
+            _window.SoundButton.onClick.RemoveListener(OnSoundClicked);
+            _window.DownloadButton.onClick.RemoveListener(OnDownloadClicked);
 
             for (int index = 0; index < _window.UpgradeViews.Length; index++)
             {
                 _window.UpgradeViews[index].Button.onClick.RemoveAllListeners();
             }
+        }
+
+        private void OnPullStarted()
+        {
+            HideUpgrades();
+        }
+
+        private void OnPullCanceled()
+        {
+            Show();
+        }
+
+        private void OnPlaneLaunched()
+        {
+            Hide();
+        }
+
+        private void OnPlaneStopped()
+        {
+            _completedRuns++;
         }
 
         private void OnWalletChanged(int amount)
@@ -132,6 +212,16 @@ namespace HUD
             }
 
             PlayShake(_window.CoinsPanel);
+        }
+
+        private void OnSoundClicked()
+        {
+            PlayPunch((RectTransform)_window.SoundButton.transform);
+        }
+
+        private void OnDownloadClicked()
+        {
+            PlayPunch((RectTransform)_window.DownloadButton.transform);
         }
 
         private void PlayShake(RectTransform target)
@@ -230,6 +320,70 @@ namespace HUD
             }
         }
 
+        private IEnumerator MovePullHand()
+        {
+            RectTransform hand = _window.PullHand;
+
+            float fade = _window.PullHandFadeDuration;
+            float press = _window.HandClickDuration;
+            float move = _window.PullHandMoveDuration;
+
+            float pressStart = fade * 0.5f;
+            float moveStart = pressStart + press * 0.6f;
+            float releaseStart = moveStart + move * 0.8f;
+            float fadeOutStart = releaseStart + press * 0.5f;
+            float cycle = fadeOutStart + fade + _window.HandPauseDuration;
+
+            while (true)
+            {
+                Vector3 start = _plane.Camera.WorldToScreenPoint(_plane.PlaneRoot.position);
+                start.z = 0f;
+                Vector3 end = start + Vector3.down * _window.PullHandDistance * hand.lossyScale.y;
+                float time = 0f;
+
+                while (time < cycle)
+                {
+                    float alpha = GetProgress(time, 0f, fade) * (1f - GetProgress(time, fadeOutStart, fade));
+                    float pressed = GetProgress(time, pressStart, press) - GetProgress(time, releaseStart, press);
+
+                    hand.position = Vector3.Lerp(start, end, GetProgress(time, moveStart, move));
+                    hand.localScale = Vector3.one * Mathf.Lerp(1f, _window.HandClickScale, pressed);
+                    SetAlpha(_pullHandImage, alpha * _pullHandAlpha);
+
+                    time += Time.deltaTime;
+                    yield return null;
+                }
+            }
+        }
+
+        private static float GetProgress(float time, float start, float duration)
+        {
+            return Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((time - start) / duration));
+        }
+
+        private IEnumerator HidePullHand()
+        {
+            yield return FadeImage(_pullHandImage, _pullHandImage.color.a, 0f, _window.PullHandFadeDuration);
+
+            _window.PullHand.gameObject.SetActive(false);
+            _pullHandRoutine = null;
+        }
+
+        private static IEnumerator FadeImage(Image target, float from, float to, float duration)
+        {
+            float time = 0f;
+
+            while (time < duration)
+            {
+                SetAlpha(target, Mathf.Lerp(from, to, Mathf.SmoothStep(0f, 1f, time / duration)));
+
+                time += Time.deltaTime;
+                yield return null;
+            }
+
+            SetAlpha(target, to);
+        }
+
         private IEnumerator MoveHandTo(RectTransform target)
         {
             RectTransform hand = _window.Hand;
@@ -273,8 +427,7 @@ namespace HUD
 
             hand.localScale = Vector3.one;
         }
-
-        // Центр кнопки в мировых координатах (у кнопки pivot не в центре)
+        
         private static Vector3 GetCenter(RectTransform target)
         {
             return target.TransformPoint(target.rect.center);
@@ -321,7 +474,12 @@ namespace HUD
             SetPulseScale(1f);
 
             _handRoutine = null;
+            _pullHandRoutine = null;
             _window.Hand.localScale = Vector3.one;
+            _window.PullHand.localScale = Vector3.one;
+            SetAlpha(_pullHandImage, _pullHandAlpha);
+            _window.SoundButton.transform.localScale = Vector3.one;
+            _window.DownloadButton.transform.localScale = Vector3.one;
 
             for (int index = 0; index < _window.UpgradeViews.Length; index++)
             {
