@@ -2,6 +2,9 @@
     "name": "EntryPoints",
     "rootNamespace": "",
     "references": [
+        "FlightControlPanel",
+        "ResultWindow",
+        "StartWindowUI",
         "GUID:111b0d7010a48d048bf6c5280e9fa330",
         "GUID:8bd746db27ba3374a80530ea94244e7b",
         "GUID:1abeaa9157cb2864d89f45dadb7aa423",
