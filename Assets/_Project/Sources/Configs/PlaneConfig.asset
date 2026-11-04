@@ -17,7 +17,7 @@ MonoBehaviour:
     _maxPullDistance: 3
     _maxNoseRaiseAngle: 15
     _pullReactionSpeed: 15
-    _minPullRadius: 0.03
+    _minPullRadius: 0.06
     _maxPullRadius: 0.15
     _minLaunchSpeed: 30
     _maxLaunchSpeed: 38
@@ -51,7 +51,7 @@ MonoBehaviour:
     _gravity: 9.81
     _groundHeight: 0
     _maxHeight: 100
-    _drag: 0.001
+    _drag: 0.01
     _minClimbCost: 2
     _maxClimbCost: 6
     _climbCostGrowthHeight: 15
@@ -60,18 +60,22 @@ MonoBehaviour:
     _noControlSpeed: 6
     _fullControlSpeed: 10
     _pitchRate: 40
+    _maxClimbAngle: 75
+    _maxRotationSpeed: 90
     _turnRate: 30
     _maxTurnAngle: 60
     _maxWingAngle: 25
     _wingReactionSpeed: 6
     _maxSideDistance: 12
-    _fuelAcceleration: 10
+    _fuelAcceleration: 3
   _planeCameraFollowConfig:
     _cameraOffset: {x: 0, y: 6, z: -10}
     _cameraLookAheadDistance: 20
-    _cameraFollowSharpness: 8
+    _cameraFollowSmoothTime: 0.35
+    _cameraFollowDelay: 0.2
+    _cameraLookBlendDuration: 0.5
     _cameraLookSharpness: 10
     _startCameraPitch: 25
-  _joystickRadius: 0.15
+  _joystickRadius: 0.3
   _startFuel: 3.5
   _slideDeceleration: 20
