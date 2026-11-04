@@ -20,11 +20,14 @@ namespace UpgradeSystem
         public int Price => Mathf.RoundToInt(_config.BasePrice * Mathf.Pow(_config.PriceGrowth, PurchaseCount));
         public float Value => _config.Values[Mathf.Min(PurchaseCount, _config.Values.Length - 1)];
  
+        public event Action Bought;
         public event Action<int> LevelReached;
  
         public void Buy()
         {
             PurchaseCount++;
+
+            Bought?.Invoke();
  
             if (Stage == 0)
             {
