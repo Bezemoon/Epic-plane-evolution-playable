@@ -1,0 +1,7 @@
+{
+    "name": "ResultWindow",
+    "references": [
+        "Unity.TextMeshPro",
+        "UnityEngine.UI"
+    ]
+}
