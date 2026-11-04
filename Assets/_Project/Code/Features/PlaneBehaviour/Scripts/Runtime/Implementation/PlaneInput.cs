@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+using System;
+using UnityEngine;
 
 namespace PlaneBehaviour
 {
@@ -12,6 +13,10 @@ namespace PlaneBehaviour
         {
             _joystickRadius = joystickRadius;
         }
+
+        public event Action<Vector2> StickPressed;
+        public event Action<float, float> StickChanged;
+        public event Action StickReleased;
 
         public bool IsPressed { get; private set; }
         
@@ -39,11 +44,13 @@ namespace PlaneBehaviour
             {
                 IsPressed = true;
                 _pressPosition = Input.mousePosition;
+                StickPressed?.Invoke(_pressPosition);
             }
 
             if (Input.GetMouseButtonUp(0))
             {
                 IsPressed = false;
+                StickReleased?.Invoke();
             }
 
             if (IsPressed == false)
@@ -58,6 +65,8 @@ namespace PlaneBehaviour
             
             PitchInput = Mathf.Clamp(-drag.y / fullDeflection, -1f, 1f);
             TurnInput = Mathf.Clamp(drag.x / fullDeflection, -1f, 1f);
+
+            StickChanged?.Invoke(TurnInput, PitchInput);
         }
     }
 }

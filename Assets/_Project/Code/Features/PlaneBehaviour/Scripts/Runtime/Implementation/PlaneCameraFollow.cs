@@ -8,6 +8,9 @@ namespace PlaneBehaviour
         private readonly Transform _cameraTransform;
         private readonly Transform _target;
 
+        private Vector3 _moveVelocity;
+        private float _followTime;
+
         public bool IsFollowing { get; private set; }
 
         public PlaneCameraFollow(PlaneCameraFollowConfig config, Transform cameraTransform, Transform target)
@@ -20,6 +23,8 @@ namespace PlaneBehaviour
         public void StartFollowing()
         {
             IsFollowing = true;
+            _followTime = 0f;
+            _moveVelocity = Vector3.zero;
         }
  
         public void StopFollowing()
@@ -34,14 +39,23 @@ namespace PlaneBehaviour
                 return;
             }
  
+            _followTime += deltaTime;
+
+            if (_followTime < _config.CameraFollowDelay)
+            {
+                return;
+            }
+
+            float blendProgress = Mathf.Clamp01((_followTime - _config.CameraFollowDelay) / _config.CameraLookBlendDuration);
+
             Vector3 targetPosition = CalculateTargetPosition();
-            float moveProgress = CalculateProgress(_config.CameraFollowSharpness, deltaTime);
-            _cameraTransform.position = Vector3.Lerp(_cameraTransform.position, targetPosition, moveProgress);
- 
-            float turnProgress = CalculateProgress(_config.CameraLookSharpness, deltaTime);
+            _cameraTransform.position = Vector3.SmoothDamp(_cameraTransform.position, targetPosition, 
+                ref _moveVelocity, _config.CameraFollowSmoothTime, Mathf.Infinity, deltaTime);
+
+            float turnSharpness = _config.CameraLookSharpness * Mathf.SmoothStep(0f, 1f, blendProgress);
+            float turnProgress = CalculateProgress(turnSharpness, deltaTime);
             _cameraTransform.rotation = Quaternion
                 .Slerp(_cameraTransform.rotation, CalculateLookRotation(), turnProgress);
-            
         }
 
         public void Reset()

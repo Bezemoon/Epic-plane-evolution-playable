@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 
 namespace PlaneBehaviour
@@ -18,6 +18,8 @@ namespace PlaneBehaviour
         [SerializeField] private float _noControlSpeed = 6f;
         [SerializeField] private float _fullControlSpeed = 10f;
         [SerializeField] private float _pitchRate = 40f;
+        [SerializeField] private float _maxClimbAngle = 75f;
+        [SerializeField] private float _maxRotationSpeed = 90f;
         [SerializeField] private float _turnRate = 30f;
         [SerializeField] private float _maxTurnAngle = 60f;
         [SerializeField] private float _maxWingAngle = 25f;
@@ -37,6 +39,8 @@ namespace PlaneBehaviour
         public float NoControlSpeed => _noControlSpeed;
         public float FullControlSpeed => _fullControlSpeed;
         public float PitchRate => _pitchRate;
+        public float MaxClimbAngle => _maxClimbAngle;
+        public float MaxRotationSpeed => _maxRotationSpeed;
         public float TurnRate => _turnRate;
         public float MaxTurnAngle => _maxTurnAngle;
         public float MaxWingAngle => _maxWingAngle;

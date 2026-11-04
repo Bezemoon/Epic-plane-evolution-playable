@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 
 namespace PlaneBehaviour
@@ -14,9 +14,11 @@ namespace PlaneBehaviour
         
         private Vector3 _velocity;
         private bool _isRunning;
+        private bool _hasWings;
         private float _wingAngle;
 
         public event Action<Vector3> Landed;
+        public event Action<Vector3> VelocityChanged;
 
         public PlaneFlight(PlaneFlightConfig config, Transform transform, PlaneInput input, PlaneFuel fuel)
         {
@@ -28,11 +30,14 @@ namespace PlaneBehaviour
             _startSidePosition = transform.position.x;
         }
 
-        public void Start(Vector3 velocity)
+        public void Start(Vector3 velocity, bool hasWings)
         {
             _velocity = velocity;
+            _hasWings = hasWings;
             _wingAngle = 0f;
             _isRunning = true;
+
+            VelocityChanged?.Invoke(_velocity);
         }
 
         public void Stop()
@@ -51,9 +56,13 @@ namespace PlaneBehaviour
             
             SlowDownByAir(deltaTime);
             SlowDownOnClimb(deltaTime);
-            AccelerateWithFuel(deltaTime);
-            TurnNoseWithStick(deltaTime);
-            TurnSideWithStick(deltaTime);
+            if (_hasWings)
+            {
+                AccelerateWithFuel(deltaTime);
+                TurnNoseWithStick(deltaTime);
+                TurnSideWithStick(deltaTime);
+            }
+
             UpdateWingAngle(deltaTime);
  
             Vector3 position = _transform.position + _velocity * deltaTime;
@@ -66,7 +75,9 @@ namespace PlaneBehaviour
  
             LimitSideDistance(ref position);
             
-            _transform.rotation = Quaternion.LookRotation(_velocity) * Quaternion.Euler(0f, 0f, -_wingAngle);
+            Quaternion targetRotation = Quaternion.LookRotation(_velocity) * Quaternion.Euler(0f, 0f, -_wingAngle);
+            _transform.rotation = Quaternion.RotateTowards(_transform.rotation, targetRotation, 
+                _config.MaxRotationSpeed * deltaTime);
  
             if (position.y <= _config.GroundHeight)
             {
@@ -81,6 +92,8 @@ namespace PlaneBehaviour
             }
  
             _transform.position = position;
+
+            VelocityChanged?.Invoke(_velocity);
         }
         
         private void SlowDownByAir(float deltaTime)
@@ -132,6 +145,14 @@ namespace PlaneBehaviour
         {
             float stickStrength  = Mathf.InverseLerp(_config.NoControlSpeed, _config.FullControlSpeed, _velocity.magnitude);
             float turnAngle = -_input.PitchInput * _config.PitchRate * stickStrength * deltaTime;
+
+            float climbAngle = Mathf.Asin(Mathf.Clamp(_velocity.y / _velocity.magnitude, -1f, 1f)) * Mathf.Rad2Deg;
+            float newClimbAngle = climbAngle - turnAngle;
+
+            if (newClimbAngle > _config.MaxClimbAngle)
+            {
+                turnAngle = climbAngle - Mathf.Max(climbAngle, _config.MaxClimbAngle);
+            }
  
             _velocity = Quaternion.AngleAxis(turnAngle, Vector3.right) * _velocity;
         }
@@ -148,7 +169,7 @@ namespace PlaneBehaviour
         
         private void UpdateWingAngle(float deltaTime)
         {
-            float targetWingAngle = _input.TurnInput * _config.MaxWingAngle;
+            float targetWingAngle = _hasWings ? _input.TurnInput * _config.MaxWingAngle : 0f;
             _wingAngle = Mathf.Lerp(_wingAngle, targetWingAngle, Mathf.Clamp01(_config.WingReactionSpeed * deltaTime));
         }
         

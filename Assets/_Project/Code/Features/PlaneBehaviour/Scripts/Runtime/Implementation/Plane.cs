@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UpgradeSystem;
+using Utils;
 
 namespace PlaneBehaviour
 {
@@ -15,6 +16,11 @@ namespace PlaneBehaviour
         [SerializeField] private Transform _rampStartPoint;
         [SerializeField] private Transform _rampControlPoint;
         [SerializeField] private Transform _rampEndPoint;
+        [SerializeField] private PlaneWings _planeWings;
+        [SerializeField] private PlaneSlingshotBands _slingshotBands;
+
+        [Header("Wings")]
+        [SerializeField] private int _purchaseCountForWings = 1;
 
         private PlaneConfig _config;
         private PlaneInput _input;
@@ -32,6 +38,7 @@ namespace PlaneBehaviour
         public event Action PullCanceled;
         public event Action Launched;
         public event Action Stopped;
+        public event Action<Vector3> PositionChanged;
 
         public Transform PlaneRoot => _planeRoot;
 
@@ -44,6 +51,12 @@ namespace PlaneBehaviour
         public Transform RampEndPoint => _rampEndPoint;
 
         public PlaneConfig Config => _config;
+
+        public PlaneFlight PlaneFlight => _planeFlight;
+
+        public PlaneInput PlaneInput => _input;
+
+        public bool HasWings => _planeUpgrade.PurchaseCount >= _purchaseCountForWings;
 
         public void Initialize(PlaneConfig config, PlaneInput input, PlaneSlingshot slingshot, PlaneClimb planeClimb, 
             PlaneFlight planeFlight, PlaneSlide planeSlide, PlaneCameraFollow cameraFollow, PlaneFuel fuel, 
@@ -61,6 +74,9 @@ namespace PlaneBehaviour
             
             _startPosition = _planeRoot.position;
 
+            ShowWings();
+            _slingshotBands.Initialize(_planeRoot);
+
             _cameraFollow.Reset();
             _cameraFollow.StopFollowing();
 
@@ -70,6 +86,7 @@ namespace PlaneBehaviour
             _planeClimb.Finished += OnPlaneClimbFinished;
             _planeFlight.Landed += OnPlaneLanded;
             _planeSlide.Stopped += OnPlaneStopped;
+            _planeUpgrade.Bought += OnPlaneUpgradeBought;
         }
         
         public void Restore()
@@ -90,6 +107,10 @@ namespace PlaneBehaviour
             _planeClimb.Tick(Time.deltaTime);
             _planeFlight.Tick(Time.deltaTime);
             _planeSlide.Tick(Time.deltaTime);
+
+            _slingshotBands.Tick();
+
+            PositionChanged?.Invoke(_planeRoot.position);
         }
 
         private void LateUpdate()
@@ -105,6 +126,7 @@ namespace PlaneBehaviour
             _planeClimb.Finished -= OnPlaneClimbFinished;
             _planeFlight.Landed -= OnPlaneLanded;
             _planeSlide.Stopped -= OnPlaneStopped;
+            _planeUpgrade.Bought -= OnPlaneUpgradeBought;
         }
 
         private void OnPullStarted()
@@ -122,18 +144,37 @@ namespace PlaneBehaviour
             Launched?.Invoke();
 
             _planeClimb.Start(launchSpeed);
+            _cameraFollow.StartFollowing();
         }
 
         private void OnPlaneClimbFinished(Vector3 velocity)
         {
             _fuel.Fill(_planeUpgrade.Value);
-            _planeFlight.Start(velocity);
-            _cameraFollow.StartFollowing();
+            _planeFlight.Start(velocity, HasWings);
         }
 
         private void OnPlaneLanded(Vector3 velocity)
         {
             _planeSlide.Start(velocity);
+        }
+
+        private void ShowWings()
+        {
+            if (HasWings)
+            {
+                _planeWings.Show();
+                return;
+            }
+
+            _planeWings.Hide();
+        }
+
+        private void OnPlaneUpgradeBought()
+        {
+            if (HasWings)
+            {
+                _planeWings.PlayAppear();
+            }
         }
 
         private void OnPlaneStopped()
@@ -188,8 +229,7 @@ namespace PlaneBehaviour
                 previousPosition = position;
             }
         }
-
-        // Радиус задан долей высоты экрана, а в мире его размер зависит от того, как далеко самолёт от камеры
+        
         private float CalculateWorldRadius(Vector3 center, float screenHeightShare)
         {
             float distanceToCamera = Vector3.Dot(center - _camera.transform.position, _camera.transform.forward);
