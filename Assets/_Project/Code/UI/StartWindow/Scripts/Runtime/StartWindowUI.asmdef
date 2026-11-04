@@ -6,6 +6,7 @@
         "Unity.TextMeshPro",
         "UnityEngine.UI",
         "UpgradeSystem",
+        "Utils",
         "WalletSystem"
     ]
 }

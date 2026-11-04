@@ -1,16 +1,40 @@
 using TMPro;
 using UnityEngine;
+using Utils;
 
 namespace StartWindowUI
 {
     public class DistanceIndicator : MonoBehaviour
     {
         [SerializeField] private TMP_Text _text;
-        [SerializeField] private CanvasGroup _canvasGroup;
-        [SerializeField] private float _fadeDuration = 0.25f;
+        [SerializeField] private FadeEffect _fade;
 
-        public TMP_Text Text => _text;
-        public CanvasGroup CanvasGroup => _canvasGroup;
-        public float FadeDuration => _fadeDuration;
+        private int _shownDistance = -1;
+
+        public void Show()
+        {
+            _fade.FadeTo(1f);
+        }
+
+        public void Hide()
+        {
+            _fade.FadeTo(0f);
+        }
+
+        public void HideInstantly()
+        {
+            _fade.SetAlpha(0f);
+        }
+
+        public void SetDistance(int distance)
+        {
+            if (distance == _shownDistance)
+            {
+                return;
+            }
+
+            _shownDistance = distance;
+            _text.text = distance + "m";
+        }
     }
 }

@@ -2,6 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UpgradeSystem;
+using Utils;
 
 namespace StartWindowUI
 {
@@ -16,8 +17,9 @@ namespace StartWindowUI
         [SerializeField] private Button _button;
         [SerializeField] private Image _buttonImage;
         [SerializeField] private RectTransform _buttonRect;
-        [SerializeField] private RectTransform[] _buttonContent;
-        [SerializeField] private Image _flashImage;
+        [SerializeField] private PunchEffect _buttonPunch;
+        [SerializeField] private ShakeEffect[] _contentShakes;
+        [SerializeField] private FlashEffect _flash;
         [SerializeField] private GameObject[] _hiddenWhenMax;
         [SerializeField] private GameObject _maxLabel;
 
@@ -32,26 +34,67 @@ namespace StartWindowUI
         [SerializeField] private Color _buttonUnavailableColor = Color.gray;
 
         public UpgradeType Type => _type;
-        public TMP_Text LevelText => _levelText;
-        public TMP_Text PriceText => _priceText;
-        public TMP_Text MultiplierText => _multiplierText;
-        public Image[] StageDots => _stageDots;
-        public Image PictureImage => _pictureImage;
         public Button Button => _button;
-        public Image ButtonImage => _buttonImage;
         public RectTransform ButtonRect => _buttonRect;
-        public RectTransform[] ButtonContent => _buttonContent;
-        public Image FlashImage => _flashImage;
-        public GameObject[] HiddenWhenMax => _hiddenWhenMax;
-        public GameObject MaxLabel => _maxLabel;
 
-        public Color PictureColor => _pictureColor;
-        public Color StageFilledColor => _stageFilledColor;
-        public Color StageEmptyColor => _stageEmptyColor;
-        public Color MultiplierColor => _multiplierColor;
-        public Color MaxColor => _maxColor;
-        public Sprite ButtonAvailableSprite => _buttonAvailableSprite;
-        public Sprite ButtonUnavailableSprite => _buttonUnavailableSprite;
-        public Color ButtonUnavailableColor => _buttonUnavailableColor;
+        public void Refresh(Upgrade upgrade, bool isAvailable)
+        {
+            bool isMax = upgrade.IsMax;
+
+            _levelText.text = (upgrade.PurchaseCount + 1).ToString();
+            _priceText.text = upgrade.Price.ToString();
+
+            if (_multiplierText != null)
+            {
+                _multiplierText.text = "X" + Mathf.Round(upgrade.Value * 10f) / 10f;
+                _multiplierText.color = isMax ? _maxColor : _multiplierColor;
+            }
+
+            for (int index = 0; index < _stageDots.Length; index++)
+            {
+                _stageDots[index].color = index < upgrade.Stage ? _stageFilledColor : _stageEmptyColor;
+            }
+
+            for (int index = 0; index < _hiddenWhenMax.Length; index++)
+            {
+                _hiddenWhenMax[index].SetActive(isMax == false);
+            }
+
+            _maxLabel.SetActive(isMax);
+            _pictureImage.color = isMax ? _maxColor : _pictureColor;
+            _buttonImage.sprite = isAvailable ? _buttonAvailableSprite : _buttonUnavailableSprite;
+            _buttonImage.color = isAvailable ? Color.white : _buttonUnavailableColor;
+        }
+
+        public void PlayPurchased()
+        {
+            _flash.Play();
+        }
+
+        public void PlayPress()
+        {
+            _buttonPunch.Play();
+        }
+
+        public void PlayRejected()
+        {
+            _buttonPunch.Play();
+
+            for (int index = 0; index < _contentShakes.Length; index++)
+            {
+                _contentShakes[index].Play();
+            }
+        }
+
+        public void ResetEffects()
+        {
+            _buttonPunch.Stop();
+            _flash.Stop();
+
+            for (int index = 0; index < _contentShakes.Length; index++)
+            {
+                _contentShakes[index].Stop();
+            }
+        }
     }
 }
