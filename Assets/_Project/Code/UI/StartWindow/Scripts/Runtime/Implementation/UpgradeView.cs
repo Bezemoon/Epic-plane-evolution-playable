@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UpgradeSystem;
 
-namespace HUD
+namespace StartWindowUI
 {
     public class UpgradeView : MonoBehaviour
     {

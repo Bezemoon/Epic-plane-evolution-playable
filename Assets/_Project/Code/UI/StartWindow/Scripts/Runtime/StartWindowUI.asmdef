@@ -1,6 +1,7 @@
 {
-    "name": "HUD",
+    "name": "StartWindowUI",
     "references": [
+        "DistanceCounterSystem",
         "PlaneBehaviour",
         "Unity.TextMeshPro",
         "UnityEngine.UI",

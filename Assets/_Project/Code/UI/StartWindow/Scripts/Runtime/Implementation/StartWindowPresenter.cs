@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using DistanceCounterSystem;
 using PlaneBehaviour;
 using UnityEngine;
 using UnityEngine.UI;
@@ -8,7 +9,7 @@ using UpgradeSystem;
 using WalletSystem;
 using Plane = PlaneBehaviour.Plane;
 
-namespace HUD
+namespace StartWindowUI
 {
     public sealed class StartWindowPresenter : IDisposable
     {
@@ -16,6 +17,7 @@ namespace HUD
         private readonly Wallet _wallet;
         private readonly UpgradeService _upgradeService;
         private readonly Plane _plane;
+        private readonly DistanceCounter _distanceCounter;
 
         private readonly Dictionary<RectTransform, float> _startPositionsX = new Dictionary<RectTransform, float>();
         private readonly Dictionary<RectTransform, Coroutine> _shakes = new Dictionary<RectTransform, Coroutine>();
@@ -27,15 +29,21 @@ namespace HUD
         private readonly float _pullHandAlpha;
 
         private Coroutine _pullHandRoutine;
+        private Coroutine _speedometerRoutine;
+        private Coroutine _distanceRoutine;
         private bool _hasUpgraded;
         private int _completedRuns;
+        private int _shownSpeed = -1;
+        private int _shownDistance = -1;
 
-        public StartWindowPresenter(StartWindow window, Wallet wallet, UpgradeService upgradeService, Plane plane)
+        public StartWindowPresenter(StartWindow window, Wallet wallet, UpgradeService upgradeService, Plane plane, 
+            DistanceCounter distanceCounter)
         {
             _window = window;
             _wallet = wallet;
             _upgradeService = upgradeService;
             _plane = plane;
+            _distanceCounter = distanceCounter;
 
             _pullHandImage = _window.PullHand.GetComponent<Image>();
             _pullHandAlpha = _pullHandImage.color.a;
@@ -46,6 +54,12 @@ namespace HUD
             _plane.PullCanceled += OnPullCanceled;
             _plane.Launched += OnPlaneLaunched;
             _plane.Stopped += OnPlaneStopped;
+            _plane.PlaneFlight.VelocityChanged += OnVelocityChanged;
+            _plane.PlaneFlight.Landed += OnPlaneLanded;
+            _plane.PositionChanged += OnPlanePositionChanged;
+
+            _window.Speedometer.CanvasGroup.alpha = 0f;
+            _window.DistanceIndicator.CanvasGroup.alpha = 0f;
 
             for (int index = 0; index < _window.UpgradeViews.Length; index++)
             {
@@ -73,9 +87,13 @@ namespace HUD
 
             StopEffects();
 
+            SetStartElementsActive(true);
             _window.gameObject.SetActive(true);
+            SetSpeed(0f);
             _window.CoinsPanel.gameObject.SetActive(true);
             _window.UpgradesGroup.SetActive(showUpgrades);
+            _window.HintGroup.SetActive(showUpgrades == false);
+            FadeDistanceIndicator(0f);
 
             Refresh();
 
@@ -103,7 +121,7 @@ namespace HUD
         {
             StopEffects();
 
-            _window.gameObject.SetActive(false);
+            SetStartElementsActive(false);
         }
 
         public void HideUpgrades()
@@ -138,6 +156,9 @@ namespace HUD
             _plane.PullCanceled -= OnPullCanceled;
             _plane.Launched -= OnPlaneLaunched;
             _plane.Stopped -= OnPlaneStopped;
+            _plane.PlaneFlight.VelocityChanged -= OnVelocityChanged;
+            _plane.PlaneFlight.Landed -= OnPlaneLanded;
+            _plane.PositionChanged -= OnPlanePositionChanged;
 
             _window.SoundButton.onClick.RemoveListener(OnSoundClicked);
             _window.DownloadButton.onClick.RemoveListener(OnDownloadClicked);
@@ -151,21 +172,49 @@ namespace HUD
         private void OnPullStarted()
         {
             HideUpgrades();
+            FadeSpeedometer(1f);
         }
 
         private void OnPullCanceled()
         {
             Show();
+            FadeSpeedometer(0f);
         }
 
         private void OnPlaneLaunched()
         {
             Hide();
+            FadeDistanceIndicator(1f);
         }
 
         private void OnPlaneStopped()
         {
             _completedRuns++;
+            FadeSpeedometer(0f);
+            FadeDistanceIndicator(0f);
+        }
+
+        private void OnVelocityChanged(Vector3 velocity)
+        {
+            SetSpeed(velocity.magnitude * _window.Speedometer.SpeedPerMeterPerSecond);
+        }
+
+        private void OnPlaneLanded(Vector3 velocity)
+        {
+            SetSpeed(0f);
+        }
+
+        private void OnPlanePositionChanged(Vector3 position)
+        {
+            int distance = Mathf.FloorToInt(_distanceCounter.CalculateDistance(position));
+
+            if (distance == _shownDistance)
+            {
+                return;
+            }
+
+            _shownDistance = distance;
+            _window.DistanceIndicator.Text.text = distance + "m";
         }
 
         private void OnWalletChanged(int amount)
@@ -528,6 +577,90 @@ namespace HUD
             view.PictureImage.color = isMax ? view.MaxColor : view.PictureColor;
             view.ButtonImage.sprite = isAvailable ? view.ButtonAvailableSprite : view.ButtonUnavailableSprite;
             view.ButtonImage.color = isAvailable ? Color.white : view.ButtonUnavailableColor;
+        }
+
+        private void FadeSpeedometer(float alpha)
+        {
+            Speedometer speedometer = _window.Speedometer;
+
+            Fade(speedometer, speedometer.CanvasGroup, alpha, speedometer.FadeDuration, ref _speedometerRoutine);
+        }
+
+        private void FadeDistanceIndicator(float alpha)
+        {
+            DistanceIndicator indicator = _window.DistanceIndicator;
+
+            Fade(indicator, indicator.CanvasGroup, alpha, indicator.FadeDuration, ref _distanceRoutine);
+        }
+
+        private static void Fade(MonoBehaviour host, CanvasGroup target, float alpha, float duration, 
+            ref Coroutine routine)
+        {
+            if (routine != null)
+            {
+                host.StopCoroutine(routine);
+            }
+
+            routine = host.StartCoroutine(FadeCanvasGroup(target, alpha, duration));
+        }
+
+        private static IEnumerator FadeCanvasGroup(CanvasGroup target, float alpha, float duration)
+        {
+            float startAlpha = target.alpha;
+            float time = 0f;
+
+            while (time < duration)
+            {
+                target.alpha = Mathf.Lerp(startAlpha, alpha, Mathf.SmoothStep(0f, 1f, time / duration));
+
+                time += Time.deltaTime;
+                yield return null;
+            }
+
+            target.alpha = alpha;
+        }
+
+        private bool IsPersistent(Transform element)
+        {
+            return element == _window.Speedometer.transform
+                || element == _window.DistanceIndicator.transform
+                || element == _window.SoundButton.transform
+                || element == _window.DownloadButton.transform;
+        }
+
+        private void SetStartElementsActive(bool isActive)
+        {
+            Transform window = _window.transform;
+
+            for (int index = 0; index < window.childCount; index++)
+            {
+                Transform child = window.GetChild(index);
+
+                if (IsPersistent(child) == false)
+                {
+                    child.gameObject.SetActive(isActive);
+                }
+            }
+        }
+
+        private void SetSpeed(float speed)
+        {
+            Speedometer speedometer = _window.Speedometer;
+
+            float progress = Mathf.Clamp01(speed / speedometer.MaxSpeed);
+            float angle = Mathf.Lerp(speedometer.MinAngle, speedometer.MaxAngle, progress);
+
+            speedometer.Needle.localRotation = Quaternion.Euler(0f, 0f, -angle);
+
+            int roundedSpeed = Mathf.RoundToInt(speed);
+
+            if (roundedSpeed == _shownSpeed)
+            {
+                return;
+            }
+
+            _shownSpeed = roundedSpeed;
+            speedometer.SpeedText.text = roundedSpeed.ToString();
         }
 
         private void SetPulseScale(float scale)

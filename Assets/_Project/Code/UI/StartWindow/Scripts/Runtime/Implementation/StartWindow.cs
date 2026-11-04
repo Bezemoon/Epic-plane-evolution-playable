@@ -2,7 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace HUD
+namespace StartWindowUI
 {
     public class StartWindow : MonoBehaviour
     {
@@ -10,12 +10,15 @@ namespace HUD
         [SerializeField] private RectTransform _coinsPanel;
         [SerializeField] private GameObject _upgradesGroup;
         [SerializeField] private GameObject _upgradesTitle;
+        [SerializeField] private GameObject _hintGroup;
         [SerializeField] private UpgradeView[] _upgradeViews;
         [SerializeField] private RectTransform[] _pulseTargets;
         [SerializeField] private RectTransform _hand;
         [SerializeField] private RectTransform _pullHand;
         [SerializeField] private Button _soundButton;
         [SerializeField] private Button _downloadButton;
+        [SerializeField] private Speedometer _speedometer;
+        [SerializeField] private DistanceIndicator _distanceIndicator;
 
         [Space]
         [SerializeField] private float _shakeDuration = 0.35f;
@@ -39,12 +42,15 @@ namespace HUD
         public RectTransform CoinsPanel => _coinsPanel;
         public GameObject UpgradesGroup => _upgradesGroup;
         public GameObject UpgradesTitle => _upgradesTitle;
+        public GameObject HintGroup => _hintGroup;
         public UpgradeView[] UpgradeViews => _upgradeViews;
         public RectTransform[] PulseTargets => _pulseTargets;
         public RectTransform Hand => _hand;
         public RectTransform PullHand => _pullHand;
         public Button SoundButton => _soundButton;
         public Button DownloadButton => _downloadButton;
+        public Speedometer Speedometer => _speedometer;
+        public DistanceIndicator DistanceIndicator => _distanceIndicator;
 
         public float ShakeDuration => _shakeDuration;
         public float ShakeAmplitude => _shakeAmplitude;
