@@ -1,6 +1,6 @@
-﻿using UnityEngine;
+using UnityEngine;
 
-namespace PlaneBehaviour
+namespace Utils
 {
     public class BezierCurve
     {
