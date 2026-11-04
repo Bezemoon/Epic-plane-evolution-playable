@@ -1,0 +1,80 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!687078895 &4343727234628468602
+SpriteAtlas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: ButtonsAtlas
+  m_EditorData:
+    serializedVersion: 2
+    textureSettings:
+      serializedVersion: 2
+      anisoLevel: 0
+      compressionQuality: 0
+      maxTextureSize: 0
+      textureCompression: 0
+      filterMode: 1
+      generateMipMaps: 0
+      readable: 0
+      crunchedCompression: 0
+      sRGB: 1
+    platformSettings:
+    - serializedVersion: 3
+      m_BuildTarget: WebGL
+      m_MaxTextureSize: 1024
+      m_ResizeAlgorithm: 0
+      m_TextureFormat: 52
+      m_TextureCompression: 1
+      m_CompressionQuality: 50
+      m_CrunchedCompression: 0
+      m_AllowsAlphaSplitting: 0
+      m_Overridden: 1
+      m_IgnorePlatformSupport: 0
+      m_AndroidETC2FallbackOverride: 0
+      m_ForceMaximumCompressionQuality_BC6H_BC7: 0
+    packingSettings:
+      serializedVersion: 2
+      padding: 8
+      blockOffset: 1
+      allowAlphaSplitting: 0
+      enableRotation: 0
+      enableTightPacking: 0
+      enableAlphaDilation: 1
+    secondaryTextureSettings: {}
+    variantMultiplier: 1
+    packables:
+    - {fileID: 102900000, guid: 1970f8e7ecfb6b74eb37658c621ddf32, type: 3}
+    - {fileID: 102900000, guid: 3e99f854129d4114ca322b954018560e, type: 3}
+    bindAsDefault: 1
+    isAtlasV2: 0
+    cachedData: {fileID: 0}
+    packedSpriteRenderDataKeys:
+    - 8e03acf12da99a94ebacf7709d3da930: 21300000
+    - 305303f5acdd1164abb0c7fdc0cf8485: 21300000
+    - d747e5e61456bf2459e4cbab7d11b298: 21300000
+    - 9fc963e735799a74fb23da05fd70f1f5: 21300000
+    - 8c06cd89b4df3c942a8f64d55c7c90bb: 21300000
+    - fd66d73c183fa1b458c89b08c3493787: 21300000
+    - 631d37ee82c886e42b96c3bf788f7200: 21300000
+  m_MasterAtlas: {fileID: 0}
+  m_PackedSprites:
+  - {fileID: 21300000, guid: 8e03acf12da99a94ebacf7709d3da930, type: 3}
+  - {fileID: 21300000, guid: 305303f5acdd1164abb0c7fdc0cf8485, type: 3}
+  - {fileID: 21300000, guid: d747e5e61456bf2459e4cbab7d11b298, type: 3}
+  - {fileID: 21300000, guid: 9fc963e735799a74fb23da05fd70f1f5, type: 3}
+  - {fileID: 21300000, guid: 8c06cd89b4df3c942a8f64d55c7c90bb, type: 3}
+  - {fileID: 21300000, guid: fd66d73c183fa1b458c89b08c3493787, type: 3}
+  - {fileID: 21300000, guid: 631d37ee82c886e42b96c3bf788f7200, type: 3}
+  m_PackedSpriteNamesToIndex:
+  - grey_panel_square
+  - green_button_rectangle
+  - grey_round
+  - grey_button_rectangle
+  - yellow_button_rectangle
+  - blue_button_rectangle
+  - grey_panel_rectangle
+  m_RenderDataMap: {}
+  m_Tag: ButtonsAtlas
+  m_IsVariant: 0

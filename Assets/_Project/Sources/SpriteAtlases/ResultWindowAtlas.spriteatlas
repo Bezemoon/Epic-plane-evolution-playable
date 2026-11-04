@@ -1,0 +1,79 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!687078895 &4343727234628468602
+SpriteAtlas:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: ResultWindowAtlas
+  m_EditorData:
+    serializedVersion: 2
+    textureSettings:
+      serializedVersion: 2
+      anisoLevel: 0
+      compressionQuality: 0
+      maxTextureSize: 0
+      textureCompression: 0
+      filterMode: 1
+      generateMipMaps: 0
+      readable: 0
+      crunchedCompression: 0
+      sRGB: 1
+    platformSettings:
+    - serializedVersion: 3
+      m_BuildTarget: WebGL
+      m_MaxTextureSize: 512
+      m_ResizeAlgorithm: 0
+      m_TextureFormat: 65
+      m_TextureCompression: 1
+      m_CompressionQuality: 50
+      m_CrunchedCompression: 0
+      m_AllowsAlphaSplitting: 0
+      m_Overridden: 1
+      m_IgnorePlatformSupport: 0
+      m_AndroidETC2FallbackOverride: 0
+      m_ForceMaximumCompressionQuality_BC6H_BC7: 0
+    packingSettings:
+      serializedVersion: 2
+      padding: 8
+      blockOffset: 1
+      allowAlphaSplitting: 0
+      enableRotation: 0
+      enableTightPacking: 0
+      enableAlphaDilation: 1
+    secondaryTextureSettings: {}
+    variantMultiplier: 1
+    packables:
+    - {fileID: 102900000, guid: 8ababba02580d2d45bb9806cba1dfd2d, type: 3}
+    bindAsDefault: 1
+    isAtlasV2: 0
+    cachedData: {fileID: 0}
+    packedSpriteRenderDataKeys:
+    - fdca9150bf5557e4180670fba6399e1a: 21300000
+    - 978dbe821f69c4c498794c40c3b27940: 21300000
+    - 70b5dfc9b01ac034d855468c4f947cb5: 21300000
+    - 1733ea9ca4740c74aa8982dc02d5cf6a: 21300000
+    - cf1d861e8e899d940a0c0a88aa680b8b: 21300000
+    - 987371be711237a4e9459ea79b92a162: 21300000
+    - d676868fb3870d14c940131ef5aadba1: 21300000
+  m_MasterAtlas: {fileID: 0}
+  m_PackedSprites:
+  - {fileID: 21300000, guid: fdca9150bf5557e4180670fba6399e1a, type: 3}
+  - {fileID: 21300000, guid: 978dbe821f69c4c498794c40c3b27940, type: 3}
+  - {fileID: 21300000, guid: 70b5dfc9b01ac034d855468c4f947cb5, type: 3}
+  - {fileID: 21300000, guid: 1733ea9ca4740c74aa8982dc02d5cf6a, type: 3}
+  - {fileID: 21300000, guid: cf1d861e8e899d940a0c0a88aa680b8b, type: 3}
+  - {fileID: 21300000, guid: 987371be711237a4e9459ea79b92a162, type: 3}
+  - {fileID: 21300000, guid: d676868fb3870d14c940131ef5aadba1, type: 3}
+  m_PackedSpriteNamesToIndex:
+  - ButtonGlossy
+  - TotalBox
+  - CrossIcon
+  - ResultPanel
+  - Star
+  - Pin
+  - RowBackground
+  m_RenderDataMap: {}
+  m_Tag: ResultWindowAtlas
+  m_IsVariant: 0
