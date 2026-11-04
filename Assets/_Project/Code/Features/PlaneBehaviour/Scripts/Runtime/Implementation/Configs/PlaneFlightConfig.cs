@@ -7,6 +7,7 @@ namespace PlaneBehaviour
     public class PlaneFlightConfig
     {
         [SerializeField] private float _gravity = 9.81f;
+        [SerializeField] private float _wingGravityMultiplier = 0.5f;
         [SerializeField] private float _groundHeight = 0f;
         [SerializeField] private float _maxHeight = 100f;
         [SerializeField] private float _drag = 0.001f;
@@ -28,6 +29,7 @@ namespace PlaneBehaviour
         [SerializeField] private float _fuelAcceleration = 10f;
  
         public float Gravity => _gravity;
+        public float WingGravityMultiplier => _wingGravityMultiplier;
         public float GroundHeight => _groundHeight;
         public float MaxHeight => _maxHeight;
         public float Drag => _drag;

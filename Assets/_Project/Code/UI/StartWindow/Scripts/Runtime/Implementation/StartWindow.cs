@@ -2,6 +2,7 @@ using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UpgradeSystem;
 using Utils;
 
 namespace StartWindowUI
@@ -26,6 +27,9 @@ namespace StartWindowUI
         [SerializeField] private DistanceIndicator _distanceIndicator;
 
         [Space]
+        [SerializeField] private UpgradeType _tutorialUpgrade = UpgradeType.Plane;
+
+        [Space]
         [SerializeField] private float _pulseAmplitude = 0.08f;
         [SerializeField] private float _pulseSpeed = 4f;
 
@@ -36,6 +40,7 @@ namespace StartWindowUI
         public GameObject UpgradesTitle => _upgradesTitle;
         public GameObject HintGroup => _hintGroup;
         public UpgradeView[] UpgradeViews => _upgradeViews;
+        public UpgradeType TutorialUpgrade => _tutorialUpgrade;
         public UpgradeTutorialHand UpgradeHand => _upgradeHand;
         public PullTutorialHand PullHand => _pullHand;
         public Button SoundButton => _soundButton;

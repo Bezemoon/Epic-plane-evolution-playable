@@ -49,6 +49,7 @@ MonoBehaviour:
     _noseTurnDuration: 0.15
   _planeFlightConfig:
     _gravity: 9.81
+    _wingGravityMultiplier: 0.5
     _groundHeight: 0
     _maxHeight: 100
     _drag: 0.01
@@ -69,7 +70,7 @@ MonoBehaviour:
     _maxSideDistance: 12
     _fuelAcceleration: 3
   _planeCameraFollowConfig:
-    _cameraOffset: {x: 0, y: 6, z: -10}
+    _cameraOffset: {x: 0, y: 7, z: -13}
     _cameraLookAheadDistance: 20
     _cameraFollowSmoothTime: 0.35
     _cameraFollowDelay: 0.2

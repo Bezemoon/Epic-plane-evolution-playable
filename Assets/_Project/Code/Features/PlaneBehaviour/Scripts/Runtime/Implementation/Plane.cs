@@ -18,6 +18,7 @@ namespace PlaneBehaviour
         [SerializeField] private Transform _rampEndPoint;
         [SerializeField] private PlaneWings _planeWings;
         [SerializeField] private PlaneSlingshotBands _slingshotBands;
+        [SerializeField] private ParticleEffect _trail;
 
         [Header("Wings")]
         [SerializeField] private int _purchaseCountForWings = 1;
@@ -38,6 +39,7 @@ namespace PlaneBehaviour
         public event Action PullCanceled;
         public event Action Launched;
         public event Action Stopped;
+        public event Action Restored;
         public event Action<Vector3> PositionChanged;
 
         public Transform PlaneRoot => _planeRoot;
@@ -97,6 +99,9 @@ namespace PlaneBehaviour
             _slingshot.Reset();
             _cameraFollow.StopFollowing();
             _cameraFollow.Reset();
+            _trail.Stop();
+
+            Restored?.Invoke();
         }
 
         private void Update()
@@ -151,10 +156,16 @@ namespace PlaneBehaviour
         {
             _fuel.Fill(_planeUpgrade.Value);
             _planeFlight.Start(velocity, HasWings);
+
+            if (HasWings)
+            {
+                _trail.Play();
+            }
         }
 
         private void OnPlaneLanded(Vector3 velocity)
         {
+            _trail.Stop();
             _planeSlide.Start(velocity);
         }
 

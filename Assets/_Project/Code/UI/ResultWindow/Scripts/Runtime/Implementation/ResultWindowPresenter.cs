@@ -1,19 +1,38 @@
 using System;
 using System.Collections;
+using LunaIntegration;
+using PlaneBehaviour;
+using ResultFlagSystem;
 using UnityEngine;
 using UnityEngine.UI;
+using WalletSystem;
+using Plane = PlaneBehaviour.Plane;
 
 namespace ResultWindow
 {
     public sealed class ResultWindowPresenter : IDisposable
     {
         private readonly ResultWindowView _window;
+        private readonly Wallet _wallet;
+        private readonly Plane _plane;
+        private readonly ResultFlag _resultFlag;
+        private readonly LunaPlayable _lunaPlayable;
+        private readonly int _runsToPlay;
 
         private int _bestDistance;
+        private int _pendingCoins;
+        private int _finishedRuns;
+        private bool _isFinalResult;
 
-        public ResultWindowPresenter(ResultWindowView window)
+        public ResultWindowPresenter(ResultWindowView window, Wallet wallet, Plane plane, ResultFlag resultFlag, 
+            LunaPlayable lunaPlayable, int runsToPlay)
         {
             _window = window;
+            _wallet = wallet;
+            _plane = plane;
+            _resultFlag = resultFlag;
+            _lunaPlayable = lunaPlayable;
+            _runsToPlay = runsToPlay;
 
             _window.CollectButton.onClick.AddListener(OnCollectClicked);
             _window.NextButton.onClick.AddListener(OnNextClicked);
@@ -21,22 +40,22 @@ namespace ResultWindow
             _window.gameObject.SetActive(false);
         }
 
-        public event Action NextClicked;
-
         public void Show(int distance, float multiplier, int total, bool isVictory)
         {
             bool isRecord = _bestDistance > 0 && distance > _bestDistance;
             _bestDistance = Mathf.Max(_bestDistance, distance);
+            _pendingCoins = total;
+            _finishedRuns++;
+            _isFinalResult = isVictory || _finishedRuns >= _runsToPlay;
 
             _window.gameObject.SetActive(true);
             _window.StopAllCoroutines();
             _window.StartCoroutine(PlayShow(distance, multiplier, total, isRecord, isVictory));
-        }
 
-        public void Hide()
-        {
-            _window.StopAllCoroutines();
-            _window.gameObject.SetActive(false);
+            if (_isFinalResult)
+            {
+                _lunaPlayable.NotifyGameEnded();
+            }
         }
 
         public void Dispose()
@@ -48,11 +67,26 @@ namespace ResultWindow
         private void OnCollectClicked()
         {
             _window.StartCoroutine(Punch((RectTransform)_window.CollectButton.transform, 0.8f));
+
+            _lunaPlayable.Install();
         }
 
         private void OnNextClicked()
         {
-            NextClicked?.Invoke();
+            if (_isFinalResult)
+            {
+                _lunaPlayable.Install();
+                return;
+            }
+
+            _wallet.Add(_pendingCoins);
+            _pendingCoins = 0;
+
+            _window.StopAllCoroutines();
+            _window.gameObject.SetActive(false);
+
+            _resultFlag.Hide();
+            _plane.Restore();
         }
 
         private void Reset(float multiplier, bool isVictory)

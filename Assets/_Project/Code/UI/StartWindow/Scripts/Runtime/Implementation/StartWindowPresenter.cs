@@ -1,5 +1,6 @@
 using System;
 using DistanceCounterSystem;
+using LunaIntegration;
 using PlaneBehaviour;
 using UnityEngine;
 using UpgradeSystem;
@@ -15,18 +16,20 @@ namespace StartWindowUI
         private readonly UpgradeService _upgradeService;
         private readonly Plane _plane;
         private readonly DistanceCounter _distanceCounter;
+        private readonly LunaPlayable _lunaPlayable;
 
         private bool _hasUpgraded;
         private int _completedRuns;
 
         public StartWindowPresenter(StartWindow window, Wallet wallet, UpgradeService upgradeService, Plane plane, 
-            DistanceCounter distanceCounter)
+            DistanceCounter distanceCounter, LunaPlayable lunaPlayable)
         {
             _window = window;
             _wallet = wallet;
             _upgradeService = upgradeService;
             _plane = plane;
             _distanceCounter = distanceCounter;
+            _lunaPlayable = lunaPlayable;
 
             _wallet.Changed += OnWalletChanged;
             _upgradeService.Bought += OnUpgradeBought;
@@ -34,6 +37,7 @@ namespace StartWindowUI
             _plane.PullCanceled += OnPullCanceled;
             _plane.Launched += OnPlaneLaunched;
             _plane.Stopped += OnPlaneStopped;
+            _plane.Restored += OnPlaneRestored;
             _plane.PlaneFlight.VelocityChanged += OnVelocityChanged;
             _plane.PlaneFlight.Landed += OnPlaneLanded;
             _plane.PositionChanged += OnPlanePositionChanged;
@@ -61,6 +65,7 @@ namespace StartWindowUI
             _plane.PullCanceled -= OnPullCanceled;
             _plane.Launched -= OnPlaneLaunched;
             _plane.Stopped -= OnPlaneStopped;
+            _plane.Restored -= OnPlaneRestored;
             _plane.PlaneFlight.VelocityChanged -= OnVelocityChanged;
             _plane.PlaneFlight.Landed -= OnPlaneLanded;
             _plane.PositionChanged -= OnPlanePositionChanged;
@@ -94,7 +99,7 @@ namespace StartWindowUI
 
             if (showUpgradeHand)
             {
-                _window.UpgradeHand.Play(_window.UpgradeViews);
+                _window.UpgradeHand.Play(FindTutorialView());
             }
             else
             {
@@ -148,6 +153,11 @@ namespace StartWindowUI
             _window.DistanceIndicator.Show();
         }
 
+        private void OnPlaneRestored()
+        {
+            Show();
+        }
+
         private void OnPlaneStopped()
         {
             _completedRuns++;
@@ -192,6 +202,12 @@ namespace StartWindowUI
                 return;
             }
 
+            if (IsLocked(view))
+            {
+                view.PlayRejected();
+                return;
+            }
+
             if (_upgradeService.TryBuy(view.Type))
             {
                 view.PlayPurchased();
@@ -210,6 +226,26 @@ namespace StartWindowUI
         private void OnDownloadClicked()
         {
             _window.PunchDownloadButton();
+
+            _lunaPlayable.Install();
+        }
+
+        private bool IsLocked(UpgradeView view)
+        {
+            return _hasUpgraded == false && view.Type != _window.TutorialUpgrade;
+        }
+
+        private UpgradeView FindTutorialView()
+        {
+            for (int index = 0; index < _window.UpgradeViews.Length; index++)
+            {
+                if (_window.UpgradeViews[index].Type == _window.TutorialUpgrade)
+                {
+                    return _window.UpgradeViews[index];
+                }
+            }
+
+            return _window.UpgradeViews[0];
         }
 
         private void Refresh()
@@ -220,7 +256,7 @@ namespace StartWindowUI
             {
                 UpgradeView view = _window.UpgradeViews[index];
                 Upgrade upgrade = _upgradeService.GetUpgrade(view.Type);
-                bool isAvailable = upgrade.IsMax == false && _wallet.Amount >= upgrade.Price;
+                bool isAvailable = upgrade.IsMax == false && IsLocked(view) == false && _wallet.Amount >= upgrade.Price;
 
                 view.Refresh(upgrade, isAvailable);
             }

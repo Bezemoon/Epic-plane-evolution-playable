@@ -2,12 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using DistanceCounterSystem;
 using FlightControlPanel;
+using LunaIntegration;
 using PlaneBehaviour;
 using ResultFlagSystem;
 using ResultWindow;
 using StartWindowUI;
 using UnityEngine;
 using UpgradeSystem;
+using Utils;
 using WalletSystem;
 using Plane = PlaneBehaviour.Plane;
 
@@ -27,10 +29,12 @@ namespace EntryPoints
         [Space]
         [SerializeField] private float _coinsPerMeter = 1f;
         [SerializeField] private float _resultDelay = 1f;
+        [SerializeField] private int _runsToPlay = 3;
         
         [Space]
         [SerializeField] private float _finishDistance = 300f;
         [SerializeField] private Transform _finishLine;
+        [SerializeField] private ParticleEffect _finishConfetti;
         
         [Space]
         [SerializeField] private ResultFlag _resultFlag;
@@ -44,35 +48,39 @@ namespace EntryPoints
         private DistanceCounter _distanceCounter;
         private Wallet _wallet;
         private UpgradeService _upgradeService;
+        private LunaPlayable _lunaPlayable;
         private StartWindowPresenter _startWindowPresenter;
         private ResultWindowPresenter _resultWindowPresenter;
         private FlightControlPanelPresenter _flightStickPresenter;
 
         private WaitForSeconds _waitForResult;
         private Coroutine _resultCoroutine;
-        private int _pendingCoins;
         private bool _isFinished;
+        private bool _isFirstRunSkipped;
 
         private void Awake()
         {
             _wallet = new Wallet();
+
+            _lunaPlayable = new LunaPlayable();
             
             InitializeUpgrades();
             InitializePlane();
 
             _distanceCounter = new DistanceCounter(_distanceStartPoint.position);
             _startWindowPresenter = new StartWindowPresenter(_startWindow, _wallet, _upgradeService, _plane, 
-                _distanceCounter);
+                _distanceCounter, _lunaPlayable);
  
             _flightStickPresenter = new FlightControlPanelPresenter(_flightStick, _plane);
-            _resultWindowPresenter = new ResultWindowPresenter(_resultWindow);
-            _resultWindowPresenter.NextClicked += OnNextClicked;
+            _resultWindowPresenter = new ResultWindowPresenter(_resultWindow, _wallet, _plane, _resultFlag, 
+                _lunaPlayable, _runsToPlay - 1);
  
             _waitForResult = new WaitForSeconds(_resultDelay);
             
             _resultFlag.Hide();
             PlaceFinishLine();
  
+            _plane.Launched += OnPlaneLaunched;
             _plane.Stopped += OnPlaneStopped;
             _plane.PositionChanged += OnPlanePositionChanged;
 
@@ -88,11 +96,11 @@ namespace EntryPoints
                 _resultCoroutine = null;
             }
             
-            _resultWindowPresenter.NextClicked -= OnNextClicked;
             _resultWindowPresenter.Dispose();
             _flightStickPresenter.Dispose();
             _startWindowPresenter.Dispose();
             
+            _plane.Launched -= OnPlaneLaunched;
             _plane.Stopped -= OnPlaneStopped;
             _plane.PositionChanged -= OnPlanePositionChanged;
         }
@@ -157,7 +165,13 @@ namespace EntryPoints
             }
 
             _isFinished = true;
+            _finishConfetti.Play();
             ShowResult(_finishDistance, true);
+        }
+
+        private void OnPlaneLaunched()
+        {
+            _isFinished = false;
         }
 
         private void OnPlaneStopped()
@@ -178,9 +192,9 @@ namespace EntryPoints
             Upgrade incomeUpgrade = _upgradeService.GetUpgrade(UpgradeType.Income);
             int roundedDistance = Mathf.RoundToInt(distance);
             int distanceCoins = Mathf.RoundToInt(distance * _coinsPerMeter);
-            _pendingCoins = Mathf.RoundToInt(distanceCoins * incomeUpgrade.Value);
+            int totalCoins = Mathf.RoundToInt(distanceCoins * incomeUpgrade.Value);
  
-            _resultCoroutine = StartCoroutine(RunResultTimer(roundedDistance, incomeUpgrade.Value, _pendingCoins, 
+            _resultCoroutine = StartCoroutine(RunResultTimer(roundedDistance, incomeUpgrade.Value, totalCoins, 
                 isVictory));
         }
         
@@ -190,19 +204,17 @@ namespace EntryPoints
             
             _resultCoroutine = null;
  
-            _resultWindowPresenter.Show(distance, multiplier, total, isVictory);
-        }
+            if (_isFirstRunSkipped == false && isVictory == false)
+            {
+                _isFirstRunSkipped = true;
+                _wallet.Add(total);
+                _resultFlag.Hide();
+                _plane.Restore();
 
-        private void OnNextClicked()
-        {
-            _wallet.Add(_pendingCoins);
-            _pendingCoins = 0;
-            _isFinished = false;
+                yield break;
+            }
  
-            _resultWindowPresenter.Hide();
-            _plane.Restore();
-            _resultFlag.Hide();
-            ShowStartWindow();
+            _resultWindowPresenter.Show(distance, multiplier, total, isVictory);
         }
     }
 }

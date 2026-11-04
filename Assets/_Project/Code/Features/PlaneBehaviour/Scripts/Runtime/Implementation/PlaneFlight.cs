@@ -52,7 +52,8 @@ namespace PlaneBehaviour
                 return;
             }
  
-            _velocity.y -= _config.Gravity * deltaTime;
+            float gravityMultiplier = _hasWings ? _config.WingGravityMultiplier : 1f;
+            _velocity.y -= _config.Gravity * gravityMultiplier * deltaTime;
             
             SlowDownByAir(deltaTime);
             SlowDownOnClimb(deltaTime);

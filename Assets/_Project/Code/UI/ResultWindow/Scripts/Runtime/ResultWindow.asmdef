@@ -1,6 +1,10 @@
 {
     "name": "ResultWindow",
     "references": [
+        "LunaIntegration",
+        "PlaneBehaviour",
+        "ResultFlagSystem",
+        "WalletSystem",
         "Unity.TextMeshPro",
         "UnityEngine.UI"
     ]

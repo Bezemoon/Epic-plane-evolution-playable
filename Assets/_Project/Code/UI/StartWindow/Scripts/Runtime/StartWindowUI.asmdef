@@ -2,6 +2,7 @@
     "name": "StartWindowUI",
     "references": [
         "DistanceCounterSystem",
+        "LunaIntegration",
         "PlaneBehaviour",
         "Unity.TextMeshPro",
         "UnityEngine.UI",

@@ -5,20 +5,19 @@ namespace StartWindowUI
 {
     public sealed class UpgradeTutorialHand : MonoBehaviour
     {
-        [SerializeField] private float _moveDuration = 0.6f;
-        [SerializeField] private float _clickDuration = 0.25f;
-        [SerializeField] private float _clickScale = 0.8f;
-        [SerializeField] private float _pauseDuration = 0.35f;
+        [SerializeField] private float _clickDuration = 0.5f;
+        [SerializeField] private float _clickScale = 0.9f;
+        [SerializeField] private float _pauseDuration = 1f;
 
         private Coroutine _routine;
 
-        public void Play(UpgradeView[] views)
+        public void Play(UpgradeView view)
         {
             Stop();
 
             gameObject.SetActive(true);
 
-            _routine = StartCoroutine(Animate(views));
+            _routine = StartCoroutine(Animate(view));
         }
 
         public void Stop()
@@ -33,40 +32,15 @@ namespace StartWindowUI
             gameObject.SetActive(false);
         }
 
-        private IEnumerator Animate(UpgradeView[] views)
+        private IEnumerator Animate(UpgradeView view)
         {
-            int index = 0;
-
-            transform.position = GetCenter(views[0].ButtonRect);
+            transform.position = GetCenter(view.ButtonRect);
 
             while (true)
             {
-                UpgradeView view = views[index];
-
-                yield return MoveTo(view.ButtonRect);
                 yield return Click(view);
                 yield return Wait(_pauseDuration);
-
-                index = (index + 1) % views.Length;
             }
-        }
-
-        private IEnumerator MoveTo(RectTransform target)
-        {
-            Vector3 start = transform.position;
-            Vector3 end = GetCenter(target);
-            float time = 0f;
-
-            while (time < _moveDuration)
-            {
-                float progress = Mathf.SmoothStep(0f, 1f, time / _moveDuration);
-                transform.position = Vector3.Lerp(start, end, progress);
-
-                time += Time.deltaTime;
-                yield return null;
-            }
-
-            transform.position = end;
         }
 
         private IEnumerator Click(UpgradeView view)
