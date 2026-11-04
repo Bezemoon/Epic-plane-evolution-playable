@@ -1,0 +1,6 @@
+{
+    "name": "FlightControlPanel",
+    "references": [
+        "PlaneBehaviour"
+    ]
+}
